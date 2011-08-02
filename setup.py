@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name = "subtitler",
-    version = "0.1.1",
+    version = "0.1.5",
     author = "Adam Strauch",
     author_email = "cx@initd.cz",
     description = ("Tool/library for searching subtitles by hash or typed query."),
@@ -23,7 +23,7 @@ setup(
         "License :: OSI Approved :: BSD License",
     ],
     install_requires=[
-        'argparse'
+        
         ],
     entry_points="""
     [console_scripts]
