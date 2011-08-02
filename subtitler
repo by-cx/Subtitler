@@ -190,13 +190,14 @@ def handler(results, subfilename=None):
 			except ValueError:
 				print "Don't be like old lady! Use number at the beginning of line."
 				sys.exit(1)
-			except IndexError:
-				print "Don't be like old lady! Use number from right range."
-				sys.exit(1)
 		else:
 			num_for_download = 1
 
-		print "I'll download subtitles %d with is %d" % (num_for_download, results[num_for_download-1]["subId"])
+		try:
+			print "I'll download subtitles %d with is %d" % (num_for_download, results[num_for_download-1]["subId"])
+		except IndexError:
+			print "Don't be like old lady! Use number from right range."
+			sys.exit(1)
 
 		if subfilename:
 			sl.download(results[num_for_download-1]["subId"], subfilename + "." + results[num_for_download-1]["format"])
