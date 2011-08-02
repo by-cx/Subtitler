@@ -23,6 +23,9 @@ Examples:
 	subtitler -q The best film ever
 	subtitler -q "The best film ever"
 
+Install:
+
+	sudo python setup.py install
 
 TODO:
 	* Upload of subtitles
