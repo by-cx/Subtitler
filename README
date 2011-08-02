@@ -1,4 +1,4 @@
-Subtitler is small tool for downloading subtitles from opensubtitles.org. Contain simple library to XML-RPC API.
+Subtitler is small tool for downloading subtitles from opensubtitles.org. Contain simple library for XML-RPC API.
 
 Right now you can download subtitles for films, series by hash or just write search query and manage searching by your self. It is automatic tool and suitable for automatic downloading, you will LOVE IT!
 
