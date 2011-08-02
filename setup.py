@@ -13,7 +13,7 @@ setup(
     author_email = "cx@initd.cz",
     description = ("Tool/library for searching subtitles by hash or typed query."),
     license = "BSD",
-    keywords = "subtitle",
+    keywords = "subtitle subtitles",
     url = "https://github.com/creckx/Subtitler",
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     long_description="Subtitler is small tool for downloading subtitles from opensubtitles.org. Contain simple library for XML-RPC API.",#read('README'),
