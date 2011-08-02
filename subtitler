@@ -217,14 +217,14 @@ def handler(results, subfilename=None):
 if __name__ == "__main__":
 	import argparse
 
-	parser = argparse.ArgumentParser(description='Process some integers.')
+	parser = argparse.ArgumentParser(description='Subtitles downloader')
 
 	parser.add_argument('-q', default=False, dest="query", help='Search subtitles (by fulltext)', action='store_true')
 	#parser.add_argument('-u', default=False, dest="upload",help='Upload subtitles of files', action='store_true')
 	parser.add_argument('-d', default=False, dest="download",help='Download subtitler for files (by hash)', action='store_true')
 
 	parser.add_argument('queries', metavar='file/query', type=str, nargs='+',
-			help='video files')
+			help='video files or query')
 
 
 	args = parser.parse_args()

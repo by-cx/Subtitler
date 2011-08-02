@@ -1,0 +1,30 @@
+Subtitler is small tool for downloading subtitles from opensubtitles.org. Contain simple library to XML-RPC API.
+
+Right now you can download subtitles for films, series by hash or just write search query and manage searching by your self. It is automatic tool and suitable for automatic downloading, you will LOVE IT!
+
+Usage:
+
+	usage: subtitler [-h] [-q] [-d] file/query [file/query ...]
+
+	Subtitles downloader
+
+	positional arguments:
+	file/query  video files or query
+
+	optional arguments:
+	-h, --help  show this help message and exit
+	-q          Search subtitles (by fulltext)
+	-d          Download subtitler for files (by hash)
+
+Examples:
+
+	subtitler -d *.avi
+	subtitler -d video1.avi video2.mkv video3.mp4
+	subtitler -q The best film ever
+	subtitler -q "The best film ever"
+
+
+TODO:
+	Upload of subtitles
+
+This program is released under BSD licence. Be free use it for anything, just write there my name, thanks.
