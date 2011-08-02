@@ -190,6 +190,9 @@ def handler(results, subfilename=None):
 			except ValueError:
 				print "Don't be like old lady! Use number at the beginning of line."
 				sys.exit(1)
+			except IndexError:
+				print "Don't be like old lady! Use number from right range."
+				sys.exit(1)
 		else:
 			num_for_download = 1
 
