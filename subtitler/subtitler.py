@@ -221,15 +221,14 @@ def handler(results, subfilename=None):
 	
 	#sl.query(["Eureka.S03E17.HDTV.XviD-NoTV", "Eureka.S04E04.The.Story.of.O2.HDTV.XviD-FQM"], "cze")
 
-
-if __name__ == "__main__":
+def main():
 	import argparse
 
 	parser = argparse.ArgumentParser(description='Subtitles downloader')
 
 	parser.add_argument('-q', default=False, dest="query", help='Search subtitles (by fulltext)', action='store_true')
 	#parser.add_argument('-u', default=False, dest="upload",help='Upload subtitles of files', action='store_true')
-	parser.add_argument('-d', default=False, dest="download",help='Download subtitler for files (by hash)', action='store_true')
+	parser.add_argument('-d', default=False, dest="download",help='Download subtitles for files (by hash)', action='store_true')
 
 	parser.add_argument('queries', metavar='file/query', type=str, nargs='+',
 			help='video files or query')
@@ -270,6 +269,9 @@ if __name__ == "__main__":
 	
 	else:
 		print "Use -q or -d switcher"
+
+if __name__ == "__main__":
+	main()
 	
 	
 
