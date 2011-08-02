@@ -185,7 +185,11 @@ def handler(results, subfilename=None):
 
 		print
 		if len(results) > 1:
-			num_for_download = int(raw_input("What number do you want download: "))
+			try:
+				num_for_download = int(raw_input("What number do you want download: "))
+			except ValueError:
+				print "Don't be like old lady! Use number at the beginning of line."
+				sys.exit(1)
 		else:
 			num_for_download = 1
 
