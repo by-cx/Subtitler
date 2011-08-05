@@ -55,7 +55,13 @@ Install
 
 		python setup.py install
 
-	As just normal user, prefer first option.
+	As a normal user, prefer first option.
+
+	If you want upgrade subtitler, use pip:
+
+		pip install subtitler --upgrade
+	
+	Or reinstall it from source.
 
 
 --------
