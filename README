@@ -1,10 +1,23 @@
-Subtitler is small tool for downloading subtitles from opensubtitles.org. Contain simple library for XML-RPC API.
+=========
+Subtitler
+=========
 
-Right now you can download subtitles for films, series by hash or just write search query and manage searching by your self. It is automatic tool and suitable for automatic downloading, you will LOVE IT!
+Subtitler is a small tool for downloading subtitles from opensubtitles.org,
+contains a simple library for theirs XML-RPC API.
 
-Usage:
+Right now you can download subtitles for films, series by hash or just write
+search query and manage searching by your self. It is automatic tool and
+suitable for automatic downloading, you will LOVE IT!
 
-	usage: subtitler [-h] [-q] [-d] file/query [file/query ...]
+In next few days/weeks I want to add a simple Qt frontend suitable for doing
+Krusader's action or any other file manager's action. It will be usable by media
+players too, at least I hope.
+
+-----
+Usage
+-----
+
+	usage: subtitler.py [-h] [-l SUBLANG] [-q] [-d] file/query [file/query ...]
 
 	Subtitles downloader
 
@@ -13,23 +26,55 @@ Usage:
 
 	optional arguments:
 	-h, --help  show this help message and exit
-	-q          Search subtitles (by fulltext)
-	-d          Download subtitler for files (by hash)
+	-l SUBLANG  Subtitles language (default: cze)
+	-q          Search subtitle (by fulltext)
+	-d          Download subtitles for files (by hash)
 
-Examples:
+
+--------
+Examples
+--------
 
 	subtitler -d *.avi
 	subtitler -d video1.avi video2.mkv video3.mp4
 	subtitler -q The best film ever
 	subtitler -q "The best film ever"
+	subtitler -l eng -d *.avi
+	subtitler -l eng,cze -d *.avi
 
-Install:
 
-	sudo python setup.py install
+--------
+Install
+--------
 
-TODO:
+	As root run this command:
+
+		pip install subtitler
+
+	If you have a source on your computer, run:
+
+		python setup.py install
+
+	As just normal user, prefer first option.
+
+
+--------
+TODO
+--------
+
 	* Upload of subtitles
 	* Own API code
-	* language selection and remember settings
+	* Remeber language selection (usefull for other langs than mine)
 
-This program is released under BSD licence. Be free use it for anything, just write there my name, thanks.
+
+--------
+Changes
+--------
+
+	1.2
+
+	* Better error handling
+	* Other langs support
+
+This program is released under BSD licence. Be free use it for anything, just
+write there my name, thanks.

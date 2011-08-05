@@ -26,7 +26,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-import xmlrpclib, sys, base64, StringIO, gzip, re
+import xmlrpclib, sys, base64, StringIO, gzip, re, socket
 
 import struct, os
 from stat import *
@@ -71,40 +71,54 @@ class SubException(Exception):
 	def __str__(self):
 		return repr(self.value)
 
+class SubExceptionBadConfig(SubException): pass
+class SubExceptionConnection(SubException): pass
+
 class SubLib:
 	APIURL = "http://api.opensubtitles.org/xml-rpc"
 	token = None
 	proxy = None
 
 	lang = "en"
+	sublang = "cze"
 	login = ""
 	passwd = ""
 
-	def __init__(self, login="", passwd=""):
+	def __init__(self, sublang="cze", login="", passwd=""):
 		self.login = login
 		self.passwd = passwd
+		self.sublang = sublang
 		
 	def connect(self):
 		if not self.lang:
-			raise SubException('No language set')
+			raise SubExceptionBadConfig('Error: No usable language')
 		if not self.APIURL:
-			raise SubException('No APIURL set')
+			raise SubExceptionBadConfig('Error: No usable API URL')
+		if not self.sublang:
+			raise SubExceptionBadConfig('Error: No usable subtitle language')
 
 		try:
 			self.proxy = xmlrpclib.ServerProxy(self.APIURL)
-			self.token = self.proxy.LogIn(self.login, self.passwd, "en", "OS Test User Agent")["token"]
-		except xmlrpclib.ProtocolError:
-			raise SubException("Service unavailable")
+			self.token = self.proxy.LogIn(self.login, self.passwd, self.lang, "OS Test User Agent")["token"]
+		except xmlrpclib.ProtocolError, e:
+			raise SubExceptionConnection(e.errmsg)
+		except socket.gaierror:
+			raise SubExceptionConnection("Error: Connection problem")
 
-	def query(self, queries, lang):
+	def query(self, queries):
 		requests = []
 		results = []
 		
 		for q in queries:
-			requests.append({"sublanguageid": lang, "query": q})
+			requests.append({"sublanguageid": self.sublang, "query": q})
 
 		#print self.proxy.SearchSubtitles(self.token, requests)
-		data = self.proxy.SearchSubtitles(self.token, requests)["data"]
+		try:
+			data = self.proxy.SearchSubtitles(self.token, requests)["data"]
+		except xmlrpclib.Fault, e:
+			raise SubException(e.faultString)
+		except xmlrpclib.ProtocolError, e:
+			raise SubException(e.errmsg)
 
 
 		if data:
@@ -123,7 +137,7 @@ class SubLib:
 		return results
 	
 	#queries - Filenames
-	def queryHash(self, queries, lang):
+	def queryHash(self, queries):
 		requests = []
 		results = []
 		
@@ -132,10 +146,15 @@ class SubLib:
 			size = os.stat(q)[ST_SIZE]
 			
 			#print "\tHash is %s (%d)" % (hash, size)
-			requests.append({"sublanguageid": lang, "moviehash": hash, "moviebytesize": size})
+			requests.append({"sublanguageid": self.sublang, "moviehash": hash, "moviebytesize": size})
 		
 		#print self.proxy.SearchSubtitles(self.token, requests)
-		data = self.proxy.SearchSubtitles(self.token, requests)["data"]
+		try:
+			data = self.proxy.SearchSubtitles(self.token, requests)["data"]
+		except xmlrpclib.Fault, e:
+			raise SubException(e.faultString)
+		except xmlrpclib.ProtocolError, e:
+			raise SubException(e.errmsg)
 		#print data
 
 		
@@ -156,7 +175,10 @@ class SubLib:
 	
 
 	def download(self, subId, filename):
-		data = self.proxy.DownloadSubtitles(self.token, [subId])["data"]
+		try:
+			data = self.proxy.DownloadSubtitles(self.token, [subId])["data"]
+		except xmlrpclib.Fault, e:
+			raise SubException(e.faultString)
 
 		if data:
 			for x in data:
@@ -174,7 +196,7 @@ class SubLib:
 
 		return False
 
-def handler(results, subfilename=None):
+def handler(sl, results, subfilename=None):
 	if results:
 		print "I found this:"
 	
@@ -185,19 +207,24 @@ def handler(results, subfilename=None):
 
 		print
 		if len(results) > 1:
-			try:
-				num_for_download = int(raw_input("What number do you want download: "))
-			except ValueError:
-				print "Don't be like old lady! Use number at the beginning of line."
-				sys.exit(1)
+			while 1:
+				num_for_download = None
+				
+				try:
+					num_for_download = int(raw_input("What number do you want download: "))
+				except ValueError:
+					sys.stderr.write("Don't be like old lady! Use number at the beginning of line.\n")
+					continue
+				
+				if num_for_download > len(results) or num_for_download <= 0:
+					sys.stderr.write("Don't be like old lady! Use number from right range.\n")
+					continue
+				else:
+					break
 		else:
 			num_for_download = 1
 
-		try:
-			print "I'll download subtitles %d with is %d" % (num_for_download, results[num_for_download-1]["subId"])
-		except IndexError:
-			print "Don't be like old lady! Use number from right range."
-			sys.exit(1)
+		print "I'll download subtitles %d with with subID: %d" % (num_for_download, results[num_for_download-1]["subId"])
 
 		if subfilename:
 			sl.download(results[num_for_download-1]["subId"], subfilename + "." + results[num_for_download-1]["format"])
@@ -217,7 +244,7 @@ def handler(results, subfilename=None):
 		print "I found nothing :-("
 	
 	print
-	print "This tool is released under BSD licence and it can't exists without opensubtitles.org."
+	print "This tool is released under BSD licence and it can't exists without www.OpenSubtitles.org."
 	
 	#sl.query(["Eureka.S03E17.HDTV.XviD-NoTV", "Eureka.S04E04.The.Story.of.O2.HDTV.XviD-FQM"], "cze")
 
@@ -226,7 +253,8 @@ def main():
 
 	parser = argparse.ArgumentParser(description='Subtitles downloader')
 
-	parser.add_argument('-q', default=False, dest="query", help='Search subtitles (by fulltext)', action='store_true')
+	parser.add_argument('-l', default="cze", dest="sublang", metavar="lang", help='Subtitles language (default: cze)')
+	parser.add_argument('-q', default=False, dest="query", help='Search subtitle (by fulltext)', action='store_true')
 	#parser.add_argument('-u', default=False, dest="upload",help='Upload subtitles of files', action='store_true')
 	parser.add_argument('-d', default=False, dest="download",help='Download subtitles for files (by hash)', action='store_true')
 
@@ -235,16 +263,18 @@ def main():
 
 
 	args = parser.parse_args()
-	#print args
 	
-	sl = SubLib()
-	sl.connect()
+	if args.download or args.query: 
+		print "I use %s language.\n" % args.sublang
+		
+		sl = SubLib(args.sublang)
+		sl.connect()
 	
 	if args.download:
 		for query in args.queries:
 			results = []
 			
-			results += sl.queryHash([query], "cze")
+			results += sl.queryHash([query])
 			subfilename = ".".join(query.split(".")[:-1])
 
 			print "Looking subtitles for:"
@@ -253,7 +283,8 @@ def main():
 
 			print
 			
-			handler(results)
+			handler(sl, results)
+
 	elif args.query:
 		query = " ".join(args.queries)
 		
@@ -263,15 +294,28 @@ def main():
 
 		print
 		
-		results = sl.query([query] ,"cze")
-			
-		handler(results)
-	
+		results = sl.query([query])
+		handler(sl, results)
+
 	else:
-		print "Use -q or -d switcher"
+		sys.stderr.write("Use -q or -d switcher\n")
 
 if __name__ == "__main__":
-	main()
-	
+	try:
+		main()
+	except SubException, e:
+		sys.stderr.write(e.value)
+		sys.stderr.write("\n")
+		sys.exit(1)
+	except SubExceptionBadConfig, e:
+		sys.stderr.write(e.value)
+		sys.stderr.write("\n")
+		sys.exit(2)
+	except SubExceptionConnection, e:
+		sys.stderr.write(e.value)
+		sys.stderr.write("\n")
+		sys.exit(3)
+	except KeyboardInterrupt:
+		sys.stderr.write("\n\nOk, no problem.\n")
 	
 
