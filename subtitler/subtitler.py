@@ -283,7 +283,7 @@ def main():
 
 			print
 			
-			handler(sl, results)
+			handler(sl, results, subfilename)
 
 	elif args.query:
 		query = " ".join(args.queries)
