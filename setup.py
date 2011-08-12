@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name = "subtitler",
-    version = "0.2.0",
+    version = "0.2.1",
     author = "Adam Strauch",
     author_email = "cx@initd.cz",
     description = ("Tool/library for searching subtitles by hash or typed query."),

@@ -227,7 +227,8 @@ def handler(sl, results, subfilename=None):
 		print "I'll download subtitles %d with with subID: %d" % (num_for_download, results[num_for_download-1]["subId"])
 
 		if subfilename:
-			sl.download(results[num_for_download-1]["subId"], subfilename + "." + results[num_for_download-1]["format"])
+			subfilename = subfilename + "." + results[num_for_download-1]["format"]
+			sl.download(results[num_for_download-1]["subId"], subfilename)
 		else:
 			sl.download(results[num_for_download-1]["subId"], results[num_for_download-1]["filename"])
 			subfilename = results[num_for_download-1]["filename"]
