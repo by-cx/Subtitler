@@ -9,7 +9,7 @@ are permitted provided that the following conditions are met:
 
     1. Redistributions of source code must retain the above copyright notice,
        this list of conditions and the following disclaimer.
-   
+
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
        documentation and/or other materials provided with the distribution.
@@ -26,43 +26,41 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-import xmlrpclib, sys, base64, StringIO, gzip, re, socket
+import xmlrpclib, sys, base64, StringIO, gzip, socket
 
-import struct, os
-from stat import *
+import struct, os, stat
 
-def hashFile(name): 
-	try: 
-		longlongformat = 'q'  # long long 
-		bytesize = struct.calcsize(longlongformat) 
+def hashFile(name):
+	try:
+		longlongformat = 'q'  # long long
+		bytesize = struct.calcsize(longlongformat)
 
-		f = open(name, "rb") 
+		f = open(name, "rb")
 
-		filesize = os.path.getsize(name) 
-		hash = filesize 
-                    
-		if filesize < 65536 * 2: 
-			return "SizeError" 
-                 
-		for x in range(65536/bytesize): 
-			buffer = f.read(bytesize) 
-			(l_value,)= struct.unpack(longlongformat, buffer)  
-			hash += l_value 
-			hash = hash & 0xFFFFFFFFFFFFFFFF #to remain as 64bit number  
+		filesize = os.path.getsize(name)
+		hash = filesize
 
+		if filesize < 65536 * 2:
+			return "SizeError"
 
-		f.seek(max(0,filesize-65536),0) 
-		for x in range(65536/bytesize): 
-			buffer = f.read(bytesize) 
-			(l_value,)= struct.unpack(longlongformat, buffer)  
-			hash += l_value 
-			hash = hash & 0xFFFFFFFFFFFFFFFF 
-                 
-		f.close() 
-		returnedhash =  "%016x" % hash 
-		return returnedhash 
-    
-	except(IOError): 
+		for x in range(65536/bytesize):
+			buffer = f.read(bytesize)
+			(l_value,)= struct.unpack(longlongformat, buffer)
+			hash += l_value
+			hash = hash & 0xFFFFFFFFFFFFFFFF #to remain as 64bit number
+
+		f.seek(max(0,filesize-65536),0)
+		for x in range(65536/bytesize):
+			buffer = f.read(bytesize)
+			(l_value,)= struct.unpack(longlongformat, buffer)
+			hash += l_value
+			hash = hash & 0xFFFFFFFFFFFFFFFF
+
+		f.close()
+		returnedhash =  "%016x" % hash
+		return returnedhash
+
+	except(IOError):
 		return "IOError"
 
 class SubException(Exception):
@@ -88,8 +86,9 @@ class SubLib:
 		self.login = login
 		self.passwd = passwd
 		self.sublang = sublang
-		
+
 	def connect(self):
+		"Connect to the server"
 		if not self.lang:
 			raise SubExceptionBadConfig('Error: No usable language')
 		if not self.APIURL:
@@ -120,7 +119,6 @@ class SubLib:
 		except xmlrpclib.ProtocolError, e:
 			raise SubException(e.errmsg)
 
-
 		if data:
 			for x in data:
 				results.append({
@@ -135,19 +133,18 @@ class SubLib:
 		results.reverse()
 
 		return results
-	
-	#queries - Filenames
+
 	def queryHash(self, queries):
+		"Ask the server to fetch infos from a list of file path"
 		requests = []
 		results = []
 		
 		for q in queries:
 			hash = hashFile(q)
-			size = os.stat(q)[ST_SIZE]
-			
+			size = os.stat(q)[stat.ST_SIZE]
 			#print "\tHash is %s (%d)" % (hash, size)
 			requests.append({"sublanguageid": self.sublang, "moviehash": hash, "moviebytesize": size})
-		
+
 		#print self.proxy.SearchSubtitles(self.token, requests)
 		try:
 			data = self.proxy.SearchSubtitles(self.token, requests)["data"]
@@ -166,13 +163,16 @@ class SubLib:
 					"subId": int(x["IDSubtitleFile"]),
 					"downloads": int(x["SubDownloadsCnt"]),
 					"format": x["SubFormat"],
+					"movieName": x["MovieName"],
+					"movieNameEn": x["MovieNameEng"],
+					"movieYear": x["MovieYear"],
+					"imdb": x["IDMovieImdb"]
 				})
-	
+
 		results.sort(key=lambda x: x["downloads"])
 		results.reverse()
 
 		return results
-	
 
 	def download(self, subId, filename):
 		try:
@@ -191,7 +191,7 @@ class SubLib:
 				f = open(filename, "w")
 				f.write(sub)
 				f.close()
-			
+
 			return True
 
 		return False
@@ -199,7 +199,7 @@ class SubLib:
 def handler(sl, results, subfilename=None):
 	if results:
 		print "I found this:"
-	
+
 		i = 1
 		for x in results:
 			print "\t%d." % i, x["filename"].ljust(66), " - %d/%s" % (x["downloads"], x["lang"])
@@ -233,7 +233,7 @@ def handler(sl, results, subfilename=None):
 			sl.download(results[num_for_download-1]["subId"], results[num_for_download-1]["filename"])
 			subfilename = results[num_for_download-1]["filename"]
 
-		print 
+		print
 
 		print "You can find your subtitles in:"
 		print " \t%s" % subfilename		
@@ -243,10 +243,10 @@ def handler(sl, results, subfilename=None):
 
 	else:
 		print "I found nothing :-("
-	
+
 	print
 	print "This tool is released under BSD licence and it can't exists without www.OpenSubtitles.org."
-	
+
 	#sl.query(["Eureka.S03E17.HDTV.XviD-NoTV", "Eureka.S04E04.The.Story.of.O2.HDTV.XviD-FQM"], "cze")
 
 def main():
@@ -264,17 +264,17 @@ def main():
 
 
 	args = parser.parse_args()
-	
-	if args.download or args.query: 
+
+	if args.download or args.query:
 		print "I use %s language.\n" % args.sublang
-		
+
 		sl = SubLib(args.sublang)
 		sl.connect()
-	
+
 	if args.download:
 		for query in args.queries:
 			results = []
-			
+
 			results += sl.queryHash([query])
 			subfilename = ".".join(query.split(".")[:-1])
 
@@ -283,18 +283,18 @@ def main():
 			print "\t%s" % query
 
 			print
-			
+
 			handler(sl, results, subfilename)
 
 	elif args.query:
 		query = " ".join(args.queries)
-		
+
 		print "Looking subtitles for:"
 		print
 		print "\t%s" % query
 
 		print
-		
+
 		results = sl.query([query])
 		handler(sl, results)
 
@@ -318,5 +318,4 @@ if __name__ == "__main__":
 		sys.exit(3)
 	except KeyboardInterrupt:
 		sys.stderr.write("\n\nOk, no problem.\n")
-	
 
